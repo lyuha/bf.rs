@@ -49,14 +49,14 @@ fn main() {
             }
             {
                 let source_bytes = source.as_bytes();
-                let mut index: usize = 0;
+                let mut program_counter: usize = 0;
                 let mut vm = Memory {
                     list: vec![0; 100],
                     pointer: 0,
                 };
 
-                while index < source_bytes.len() {
-                    match source_bytes[index] as char {
+                while program_counter < source_bytes.len() {
+                    match source_bytes[program_counter] as char {
                         '+' => {
                             if vm.list[vm.pointer].checked_add(1).is_none() {
                                 // err
@@ -86,15 +86,15 @@ fn main() {
                         }
                         '[' => {
                             if vm.list[vm.pointer] == 0 {
-                                if let Some(&v) = jump_positions.get(&index) {
-                                    index = v;
+                                if let Some(&v) = jump_positions.get(&program_counter) {
+                                    program_counter = v;
                                 }
                             }
                         }
                         ']' => {
                             if vm.list[vm.pointer] != 0 {
-                                if let Some(&v) = jump_positions.get(&index) {
-                                    index = v;
+                                if let Some(&v) = jump_positions.get(&program_counter) {
+                                    program_counter = v;
                                 }
                             }
                         }
@@ -111,7 +111,7 @@ fn main() {
                         }
                         _ => (),
                     }
-                    index += 1;
+                    program_counter += 1;
                 }
             }
         } else {
