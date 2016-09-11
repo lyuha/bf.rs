@@ -13,7 +13,9 @@ fn main() {
         if let Ok(mut f) = File::open(&arg) {
             println!("\nFile '{}' output", arg);
             let mut buffer = String::new();
-            f.read_to_string(&mut buffer);
+            if let Err(e) = f.read_to_string(&mut buffer) {
+                // err
+            }
 
             let source = buffer.chars()
                 .filter(|&x| {
@@ -113,7 +115,9 @@ fn main() {
                 }
             }
         } else {
-            std::io::stderr().write_fmt(format_args!("File '{}' don't exist\n", arg));
+            if let Err(e) = writeln!(&mut std::io::stderr(), "File '{}' don't exist", arg) {
+                println!("\nWriting Error: {}", e);
+            }
         }
     }
 }
