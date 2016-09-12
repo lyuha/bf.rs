@@ -1,12 +1,11 @@
+mod bf;
+
 use std::env;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::collections::BTreeMap;
 
-struct Memory {
-    list: Vec<u8>,
-    pointer: usize,
-}
+use self::bf::BFMemory;
 
 fn main() {
     for arg in env::args().skip(1) {
@@ -50,63 +49,37 @@ fn main() {
             {
                 let source_bytes = source.as_bytes();
                 let mut program_counter: usize = 0;
-                let mut vm = Memory {
-                    list: vec![0; 100],
-                    pointer: 0,
-                };
+                let mut vm = BFMemory::new();
 
                 while program_counter < source_bytes.len() {
                     match source_bytes[program_counter] as char {
-                        '+' => {
-                            if vm.list[vm.pointer].checked_add(1).is_none() {
-                                // err
-                            } else {
-                                vm.list[vm.pointer] += 1;
-                            }
-                        }
-                        '-' => {
-                            if vm.list[vm.pointer].checked_sub(1).is_none() {
-                                // err
-                            } else {
-                                vm.list[vm.pointer] -= 1;
-                            }
-                        }
-                        '<' => {
-                            if vm.pointer.checked_sub(1).is_none() {
-                               // err
-                            } else {
-                              vm.pointer -= 1;
-                            }
-                        }
-                        '>' => {
-                            vm.pointer += 1;
-                            if vm.pointer >= vm.list.len() {
-                                vm.list.push(0);
-                            }
-                        }
+                        '+' => vm.increase(),
+                        '-' => vm.decrease(),
+                        '<' => vm.move_left(),
+                        '>' => vm.move_right(),
                         '[' => {
-                            if vm.list[vm.pointer] == 0 {
+                            if vm.get_value() == 0 {
                                 if let Some(&v) = jump_positions.get(&program_counter) {
                                     program_counter = v;
                                 }
                             }
                         }
                         ']' => {
-                            if vm.list[vm.pointer] != 0 {
+                            if vm.get_value() != 0 {
                                 if let Some(&v) = jump_positions.get(&program_counter) {
                                     program_counter = v;
                                 }
                             }
                         }
                         '.' => {
-                            print!("{}", vm.list[vm.pointer] as char);
+                            print!("{}", vm.get_value() as char);
                         }
                         ',' => {
                             let mut buf = [0];
                             let mut handle = std::io::stdin().take(1);
 
                             if handle.read(&mut buf).is_ok() {
-                                vm.list[vm.pointer] = buf[0];
+                                vm.set_value(buf[0])
                             }
                         }
                         _ => (),
